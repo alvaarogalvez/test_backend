@@ -1,12 +1,15 @@
 const express = require('express');
 const db = require('./initdb');
+const fs = require('fs');
+const path = require('path')
 const geoip = require('geoip-lite');
 const morgan = require('morgan');
-
 const PORT = 4000;
 const app = express();
-app.use(morgan('combined'));
-
+const logStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
+app.use(express.static('public'));
+app.use(express.json());
+app.use(morgan('combined', { stream: logStream }));
 app.get('/', (req, res) => {
     res.send("Hola mundo");
 });
@@ -37,6 +40,12 @@ app.get("/usuarios", (req, res) => {
     const usuarios = db.prepare
     (stmt).all();
     res.json(usuarios);
+});
+
+app.post("/collect", (req, res) => {
+    const data = req.body;
+    console.log(data);
+    res.send(data);
 });
 
 app.listen(PORT, () => {
